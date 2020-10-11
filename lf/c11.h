@@ -49,11 +49,11 @@ static inline bool __lfaba_cmpxchg_strong(_Atomic(lfatomic_big_t) * obj,
 					succ, fail);
 }
 
-static inline dtype_t __lfaba_fetch_and(_Atomic(lfatomic_big_t) * obj,
-		lfatomic_big_t arg, memory_order order)
-{
-	return atomic_fetch_and_explicit(obj, arg, order);
-}
+// static inline dtype_t __lfaba_fetch_and(_Atomic(lfatomic_big_t) * obj,
+// 		lfatomic_big_t arg, memory_order order)
+// {
+// 	return atomic_fetch_and_explicit(obj, arg, order);
+// }
 
 #endif /* !__LF_C11_H */
 
