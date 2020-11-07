@@ -121,7 +121,7 @@ static inline bool lfring_enqueue(struct lfring * ring, size_t order,
 
 	eidx ^= (n - 1);
 
-	while (1) {
+	// while (1) {
 		tail = atomic_fetch_add_explicit(&q->tail, 1, memory_order_acq_rel);
 		tcycle = (tail << 1) | (2 * n - 1);
 		tidx = __lfring_map(tail, order, n);
@@ -142,7 +142,7 @@ retry:
 				atomic_store(&q->threshold, __lfring_threshold3(half, n));
 			return true;
 		}
-	}
+	// }
 }
 
 static inline void __lfring_catchup(struct lfring * ring,
@@ -150,13 +150,15 @@ static inline void __lfring_catchup(struct lfring * ring,
 {
 	struct __lfring * q = (struct __lfring *) ring;
 
-	while (!atomic_compare_exchange_weak_explicit(&q->tail, &tail, head,
-			memory_order_acq_rel, memory_order_acquire)) {
-		head = atomic_load(&q->head);
-		tail = atomic_load(&q->tail);
-		if (__lfring_cmp(tail, >=, head))
-			break;
-	}
+	// while (!atomic_compare_exchange_weak_explicit(&q->tail, &tail, head,
+	// 		memory_order_acq_rel, memory_order_acquire)) {
+		atomic_compare_exchange_weak_explicit(&q->tail, &tail, head,
+			memory_order_acq_rel, memory_order_acquire);
+		// head = atomic_load(&q->head);
+		// tail = atomic_load(&q->tail);
+		// if (__lfring_cmp(tail, >=, head))
+		// 	break;
+	// }
 }
 
 static inline size_t lfring_dequeue(struct lfring * ring, size_t order,
@@ -171,7 +173,7 @@ static inline size_t lfring_dequeue(struct lfring * ring, size_t order,
 		return LFRING_EMPTY;
 	}
 
-	while (1) {
+	// while (1) {
 		head = atomic_fetch_add_explicit(&q->head, 1, memory_order_acq_rel);
 		hcycle = (head << 1) | (2 * n - 1);
 		hidx = __lfring_map(head, order, n);
@@ -179,7 +181,7 @@ static inline size_t lfring_dequeue(struct lfring * ring, size_t order,
 again:
 		entry = atomic_load_explicit(&q->array[hidx], memory_order_acquire);
 
-		do {
+		// do {
 			ecycle = entry | (2 * n - 1);
 			if (ecycle == hcycle) {
 				atomic_fetch_or_explicit(&q->array[hidx], (n - 1),
@@ -189,17 +191,18 @@ again:
 
 			if ((entry | n) != ecycle) {
 				entry_new = entry & ~(lfatomic_t) n;
-				if (entry == entry_new)
-					break;
-			} else {
-				if (++attempt <= 10000)
-					goto again;
-				entry_new = hcycle ^ ((~entry) & n);
-			}
-		} while (__lfring_cmp(ecycle, <, hcycle) &&
+				// if (entry == entry_new)
+					// break;
+			}// else {
+			// 	if (++attempt <= 10000)
+			// 		goto again;
+			// 	entry_new = hcycle ^ ((~entry) & n);
+			// }
+		// } while (__lfring_cmp(ecycle, <, hcycle) &&
+		__lfring_cmp(ecycle, <, hcycle) &&
 					!atomic_compare_exchange_weak_explicit(&q->array[hidx],
 					&entry, entry_new,
-					memory_order_acq_rel, memory_order_acquire));
+					memory_order_acq_rel, memory_order_acquire);
 
 		if (!nonempty) {
 			tail = atomic_load_explicit(&q->tail, memory_order_acquire);
@@ -214,7 +217,7 @@ again:
 					memory_order_acq_rel) <= 0)
 				return LFRING_EMPTY;
 		}
-	}
+	// }
 }
 
 #endif	/* !__LFRING_H */
